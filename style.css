@@ -1,50 +1,81 @@
 /* ============================================
-   BACKGROUND STYLES
+   BACKGROUND
    ============================================ */
-
 body {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6a11cb 100%);
     background-size: cover;
     background-attachment: fixed;
     background-repeat: no-repeat;
     min-height: 100vh;
+    transition: background 0.3s ease;
 }
 
 body::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.15);
     z-index: -1;
     pointer-events: none;
 }
 
 /* ============================================
+   DARK MODE
+   ============================================ */
+body.dark-mode {
+    background: linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+body.dark-mode::before {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   THEME TOGGLE BUTTON
+   ============================================ */
+.theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, background 0.3s;
+    z-index: 1000;
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.1) rotate(15deg);
+}
+
+body.dark-mode .theme-toggle-btn {
+    background: rgba(30, 30, 40, 0.9);
+}
+
+/* ============================================
    ANIMATIONS
    ============================================ */
-
 .fade-in {
     animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================
    DASHBOARD CARDS
    ============================================ */
-
 .dashboard-card {
     cursor: pointer;
     transform: scale(1);
@@ -57,9 +88,8 @@ body::before {
 }
 
 /* ============================================
-   UTILITY CLASSES
+   UTILITIES
    ============================================ */
-
 .hidden {
     display: none !important;
 }

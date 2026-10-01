@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Kuya's Company</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen p-8 font-sans">
+    <button id="theme-toggle" onclick="toggleTheme()" class="theme-toggle-btn"><span id="theme-icon">🌙</span></button>
+
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl mx-auto transition-colors">
+        <a href="index.html" class="text-blue-600 dark:text-blue-400 text-sm hover:underline">← Back to Dashboard</a>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white mt-4 mb-6">📊 Reports</h1>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg text-center">
+                <p class="text-2xl font-bold text-blue-600 dark:text-blue-300">12</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Logins</p>
+            </div>
+            <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg text-center">
+                <p class="text-2xl font-bold text-green-600 dark:text-green-300">98%</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Success Rate</p>
+            </div>
+            <div class="bg-purple-50 dark:bg-purple-900 p-4 rounded-lg text-center">
+                <p class="text-2xl font-bold text-purple-600 dark:text-purple-300">4</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sessions</p>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h2 class="font-bold text-gray-700 dark:text-white mb-3">Recent Activity</h2>
+            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <li>✅ Account created</li>
+                <li>✅ First login successful</li>
+                <li>✅ OTP verified</li>
+                <li>📊 Viewing reports page</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

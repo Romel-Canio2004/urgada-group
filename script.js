@@ -1,20 +1,26 @@
-// --- State Management ---
+// ============================================
+// STATE
+// ============================================
 let currentUser = null;
 let generatedOTP = null;
+let otpTimer = null;
+let resendTimer = null;
 
-// --- View Navigation ---
+// ============================================
+// VIEW NAVIGATION
+// ============================================
 function toggleView(viewName) {
-    // Hide all views
-    document.getElementById('signup-view').classList.add('hidden');
-    document.getElementById('login-view').classList.add('hidden');
-    document.getElementById('otp-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.add('hidden');
-
-    // Show the requested view
-    document.getElementById(`${viewName}-view`).classList.remove('hidden');
+    ['signup', 'login', 'otp', 'dashboard'].forEach(v => {
+        const el = document.getElementById(`${v}-view`);
+        if (el) el.classList.add('hidden');
+    });
+    const target = document.getElementById(`${viewName}-view`);
+    if (target) target.classList.remove('hidden');
 }
 
-// --- Password Show / Hide Toggle ---
+// ============================================
+// PASSWORD SHOW / HIDE
+// ============================================
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') {
@@ -26,132 +32,177 @@ function togglePassword(inputId, btn) {
     }
 }
 
-// --- 1. Sign Up Logic (Strong Password Validation) ---
-document.getElementById('signup-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const email = document.getElementById('su-email').value;
-    const password = document.getElementById('su-password').value;
-    const errorMsg = document.getElementById('pw-error');
+// ============================================
+// 🔐 PASSWORD HASHING (SHA-256)
+// ============================================
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
-    // Strong Password Regex: Min 8 chars, 1 Uppercase, 1 Lowercase, 1 Number, 1 Special Char
-    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+// ============================================
+// 🌙 DARK MODE
+// ============================================
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+}
 
-    if (!strongRegex.test(password)) {
-        errorMsg.classList.remove('hidden');
-        return;
+function updateThemeIcon() {
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+}
+
+// ============================================
+// PAGE LOAD
+// ============================================
+window.addEventListener('DOMContentLoaded', () => {
+    // Apply saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
     }
-    errorMsg.classList.add('hidden');
+    updateThemeIcon();
 
-    // Save user to LocalStorage (Simulating Database)
-    const user = { email: email, password: password };
-    localStorage.setItem('registeredUser', JSON.stringify(user));
+    // Wire up index.html forms (only if on index.html)
+    if (document.getElementById('signup-form')) {
+        attachFormListeners();
+    }
 
-    alert("Account Created Successfully! Please Log In.");
-    toggleView('login');
+    // Populate sub-pages (profile.html, etc.)
+    if (document.getElementById('profile-email')) {
+        populateSubPage();
+    }
 });
 
-// --- 2. Login Logic (Admin Controlled Simulation) ---
-document.getElementById('login-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const email = document.getElementById('li-email').value;
-    const password = document.getElementById('li-password').value;
+// ============================================
+// FORM LISTENERS (index.html only)
+// ============================================
+function attachFormListeners() {
 
-    const storedUser = JSON.parse(localStorage.getItem('registeredUser'));
+    // --- SIGN UP ---
+    document.getElementById('signup-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const email = document.getElementById('su-email').value;
+        const password = document.getElementById('su-password').value;
+        const errorMsg = document.getElementById('pw-error');
 
-    if (!storedUser) {
-        alert("No account found. Please sign up first.");
-        return;
-    }
+        const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!strongRegex.test(password)) {
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+        errorMsg.classList.add('hidden');
 
-    if (email === storedUser.email && password === storedUser.password) {
-        currentUser = email;
-        generateOTP(); // Trigger Admin Side Logic
-    } else {
-        alert("Invalid Email or Password.");
-    }
-});
+        const hashedPassword = await hashPassword(password);
+        const user = {
+            id: 'USR-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+            email: email,
+            passwordHash: hashedPassword,
+            registeredAt: new Date().toISOString(),
+            lastLogin: null
+        };
+        localStorage.setItem('registeredUser', JSON.stringify(user));
 
-// --- 3. Admin Side: Generate OTP ---
-function generateOTP() {
-    // Generate a random 4-digit number
-    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+        alert("Account Created Successfully! Please Log In.");
+        toggleView('login');
+    });
 
-    // Simulate sending email (Alert the user)
-    alert(`[ADMIN SYSTEM] OTP Generated:\n\nYour 4-digit code is: ${generatedOTP}`);
+    // --- LOGIN ---
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const email = document.getElementById('li-email').value;
+        const password = document.getElementById('li-password').value;
 
-    // Switch to OTP View
-    toggleView('otp');
+        const storedUser = JSON.parse(localStorage.getItem('registeredUser'));
+        if (!storedUser) {
+            alert("No account found. Please sign up first.");
+            return;
+        }
 
-    // Auto-focus first input and clear any previous value
+        const hashedInput = await hashPassword(password);
+        if (email === storedUser.email && hashedInput === storedUser.passwordHash) {
+            currentUser = storedUser;
+            currentUser.lastLogin = new Date().toISOString();
+            localStorage.setItem('registeredUser', JSON.stringify(currentUser));
+            generateOTP();
+        } else {
+            alert("Invalid Email or Password.");
+        }
+    });
+
+    // --- OTP inputs auto-advance ---
     const otpInputs = document.querySelectorAll('.otp-input');
-    if (otpInputs.length > 0) {
-        otpInputs.forEach(input => input.value = "");
-        otpInputs[0].focus();
-    }
-}
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+    });
 
-// --- 4. OTP Input Handling (Auto-focus next box) ---
-const otpInputs = document.querySelectorAll('.otp-input');
+    // --- VERIFY OTP ---
+    document.getElementById('verify-btn').addEventListener('click', function () {
+        if (!generatedOTP) {
+            document.getElementById('otp-error').textContent = "OTP expired. Please click Resend.";
+            document.getElementById('otp-error').classList.remove('hidden');
+            return;
+        }
 
-otpInputs.forEach((input, index) => {
-    // Move forward when typing
-    input.addEventListener('input', (e) => {
-        if (e.target.value.length === 1 && index < otpInputs.length - 1) {
-            otpInputs[index + 1].focus();
+        const otpInputs = document.querySelectorAll('.otp-input');
+        let enteredOTP = "";
+        otpInputs.forEach(input => enteredOTP += input.value);
+
+        if (enteredOTP === generatedOTP) {
+            clearInterval(otpTimer);
+            clearInterval(resendTimer);
+            showDashboard();
+        } else {
+            document.getElementById('otp-error').textContent = "Invalid OTP. Try again.";
+            document.getElementById('otp-error').classList.remove('hidden');
+            otpInputs.forEach(input => input.value = "");
+            otpInputs[0].focus();
         }
     });
 
-    // Move backward on backspace
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
-            otpInputs[index - 1].focus();
-        }
-    });
-});
-
-// --- 5. Verify OTP → Go to Dashboard ---
-document.getElementById('verify-btn').addEventListener('click', function () {
-    let enteredOTP = "";
-    otpInputs.forEach(input => enteredOTP += input.value);
-
-    if (enteredOTP === generatedOTP) {
-        // Show the logged-in email on the dashboard
-        document.getElementById('user-email-display').textContent = currentUser;
-
-        // Go to Dashboard
-        toggleView('dashboard');
-    } else {
-        document.getElementById('otp-error').classList.remove('hidden');
-        // Clear inputs
-        otpInputs.forEach(input => input.value = "");
-        otpInputs[0].focus();
-    }
-});
-
-// --- 6. Logout ---
-function logout() {
-    currentUser = null;
-    generatedOTP = null;
-
-    // Reset forms
-    document.getElementById('login-form').reset();
-    document.getElementById('signup-form').reset();
-
-    // Clear OTP inputs
-    otpInputs.forEach(input => input.value = "");
-
-    // Reset password fields back to hidden state
-    document.getElementById('su-password').type = 'password';
-    document.getElementById('li-password').type = 'password';
-
-    toggleView('login');
+    // --- RESEND OTP ---
+    document.getElementById('resend-btn').addEventListener('click', resendOTP);
 }
-// --- 7. Dashboard Card Click Handler ---
-function handleCardClick(cardName) {
-    // For now, we simulate navigation with an alert and a console log.
-    // In the future, you can replace this with actual page navigation:
-    // window.location.href = 'profile.html';
-    
-    console.log(`User clicked on: ${cardName}`);
-    alert(`Navigating to ${cardName}...\n\n(You can replace this alert with actual page navigation later!)`);
+
+// ============================================
+// OTP GENERATION + TIMERS
+// ============================================
+function generateOTP() {
+    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+    alert(`[ADMIN SYSTEM] OTP Generated:\n\nYour 4-digit code is: ${generatedOTP}\n\nExpires in 60 seconds.`);
+
+    toggleView('otp');
+    document.getElementById('otp-error').classList.add('hidden');
+
+    // Re-enable verify button
+    const verifyBtn = document.getElementById('verify-btn');
+    verifyBtn.disabled = false;
+    verifyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+    // Clear OTP input boxes
+    document.querySelectorAll('.otp-input').forEach(input => input.value = "");
+    document.querySelectorAll('.otp-input')[0].focus();
+
+    startOTPTimer();
+    startResendTimer();
 }
+
+// ⏱️ 60-second OTP expiry countdown
+function startOTPTimer() {
+    clearInterval(otpTimer);
+    let otpExpiry = 60;
+    const

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Kuya's Company</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen p-8 font-sans">
+    <button id="theme-toggle" onclick="toggleTheme()" class="theme-toggle-btn"><span id="theme-icon">🌙</span></button>
+
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl mx-auto transition-colors">
+        <a href="index.html" class="text-blue-600 dark:text-blue-400 text-sm hover:underline">← Back to Dashboard</a>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white mt-4 mb-6">👤 My Profile</h1>
+
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 space-y-4">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-20 h-20 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-4xl">👤</div>
+                <div>
+                    <h2 id="profile-email" class="text-lg font-bold text-gray-800 dark:text-white"></h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Verified User</p>
+                </div>
+            </div>
+            <hr class="border-gray-300 dark:border-gray-600">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400">User ID</p>
+                    <p id="profile-userid" class="text-gray-800 dark:text-white font-mono font-semibold"></p>
+                </div>
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400">Email</p>
+                    <p id="profile-email2" class="text-gray-800 dark:text-white font-semibold"></p>
+                </div>
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400">Registered</p>
+                    <p id="profile-registered" class="text-gray-800 dark:text-white"></p>
+                </div>
+                <div>
+                    <p class="text-gray-500 dark:text-gray-400">Last Login</p>
+                    <p id="profile-lastlogin" class="text-gray-800 dark:text-white"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
